@@ -21,6 +21,23 @@
         .line-clamp-4 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
         .custom-card { background: linear-gradient(145deg, #0f172a, #020617); border: 1px solid #1e293b; }
         .hero-gradient { background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 50%, #020617 100%); }
+        
+        /* Shiny / Glowing Button Styles */
+        .btn-shiny {
+            background: linear-gradient(-45deg, #4f46e5, #7c3aed, #2563eb, #4f46e5);
+            background-size: 400% 400%;
+            animation: gradient-flow 3s ease infinite, pulse-glow 2s infinite;
+        }
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(124, 58, 237, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+        }
     </style>
 </head>
 <body class="selection:bg-blue-500/30">
@@ -52,10 +69,9 @@
         
         const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Enterprise AI Strategy Framework", month: "April", avatar: "FO" };
 
-        // Starts from March - December (10 Months)
         const MONTHLY_RECORDS = [
-            { month: "March", winner: "Chidi Okafor", solution: "Automated Meeting Minutes", status: "completed" },
-            { month: "April", winner: "Femi Olugbesan", solution: "Enterprise AI Strategy", status: "completed" },
+            { month: "March", winner: null, solution: null, status: "upcoming" },
+            { month: "April", winner: null, solution: null, status: "upcoming" },
             { month: "May", winner: null, solution: null, status: "active" },
             { month: "June", winner: null, solution: null, status: "upcoming" },
             { month: "July", winner: null, solution: null, status: "upcoming" },
@@ -69,37 +85,31 @@
         let state = {
             user: null,
             activeTab: 'dashboard',
+            submissionType: 'individual',
             submissions: [],
             ideas: [],
-            voted: new Set(),
             selectedInnovation: null,
             isAdmin: false,
             showAdminLogin: false,
-            timeLeft: { days: 0, hours: 0, mins: 0, label: "HUNT ENDS" }
+            timeLeft: { days: 0, hours: 0, mins: 0, label: "HUNT ENDS" },
+            formData: {},
+            ideaData: {}
         };
+
+        const EXTERNAL_VOTING_URL = "https://surveymars.com/q/7JKogeul9";
 
         // --- Countdown Logic (1st to 20th) ---
         function updateCountdown() {
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth();
-            
             const startOfWindow = new Date(year, month, 1, 0, 0, 0);
             const endOfWindow = new Date(year, month, 20, 23, 59, 59);
+            let targetDate, label;
 
-            let targetDate;
-            let label;
-
-            if (now < startOfWindow) {
-                targetDate = startOfWindow;
-                label = "STARTS IN";
-            } else if (now <= endOfWindow) {
-                targetDate = endOfWindow;
-                label = "ENDS IN";
-            } else {
-                targetDate = new Date(year, month + 1, 1, 0, 0, 0);
-                label = "NEXT HUB IN";
-            }
+            if (now < startOfWindow) { targetDate = startOfWindow; label = "STARTS IN"; }
+            else if (now <= endOfWindow) { targetDate = endOfWindow; label = "ENDS IN"; }
+            else { targetDate = new Date(year, month + 1, 1, 0, 0, 0); label = "NEXT HUB IN"; }
 
             const diff = targetDate - now;
             state.timeLeft = {
@@ -125,12 +135,12 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar">
-                            <button onclick="navigate('dashboard')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-white'}">Dashboard</button>
-                            <button onclick="navigate('challenge')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-white'}">Challenge</button>
-                            <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-white'}">Innovations</button>
-                            <button onclick="navigate('ideahub')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'ideahub' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-white'}">Idea Hub</button>
-                            <button onclick="navigate('winners')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'winners' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-white'}">Winners</button>
-                            ${state.isAdmin ? `<button onclick="navigate('admin')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'admin' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-white'}">Admin</button>` : ''}
+                            <button onclick="navigate('dashboard')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Dashboard</button>
+                            <button onclick="navigate('challenge')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
+                            <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Innovations</button>
+                            <button onclick="navigate('ideahub')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'ideahub' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Idea Hub</button>
+                            <button onclick="navigate('winners')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'winners' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Winners</button>
+                            ${state.isAdmin ? `<button onclick="navigate('admin')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'admin' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Admin</button>` : ''}
                         </div>
                         <div onclick="toggleAdminLogin()" class="w-10 h-10 bg-slate-800 rounded-full border border-slate-700 flex items-center justify-center font-bold text-xs text-white cursor-pointer hover:bg-slate-700 transition">
                             ${state.isAdmin ? '<i data-lucide="shield-check" class="text-emerald-400 w-4 h-4"></i>' : 'JD'}
@@ -196,91 +206,160 @@
                 return `
                     <div class="max-w-5xl mx-auto space-y-12">
                         <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">AI Idea Crowdsourcing</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">What AI solutions should we build next?</p></div>
-                        
                         <div class="bg-slate-900 border border-blue-500/10 rounded-[2.5rem] p-10 max-w-2xl mx-auto shadow-2xl custom-card">
                             <h3 class="text-2xl font-black text-white mb-8 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400"></i> Pitch an AI Concept</h3>
                             <form onsubmit="handleIdeaSubmit(event)" class="space-y-6">
                                 <div class="grid md:grid-cols-2 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                                        <input required name="name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold" placeholder="Your Name">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Work Email</label>
-                                        <input required name="email" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold" placeholder="name@descasio.io">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Department</label>
-                                        <select name="dept" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold">
-                                            ${DEPARTMENTS.map(d => `<option value="${d}">${d}</option>`).join('')}
-                                        </select>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">The Idea (Title)</label>
-                                        <input required name="title" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold" placeholder="E.g. Auto-Billing Bot">
-                                    </div>
+                                    <input required oninput="handleFormInput('ideaData', 'name', this.value)" value="${state.ideaData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Full Name">
+                                    <input required oninput="handleFormInput('ideaData', 'email', this.value)" value="${state.ideaData.email || ''}" type="email" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Work Email">
+                                    <select onchange="handleFormInput('ideaData', 'dept', this.value)" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm">
+                                        <option value="">Select Dept</option>
+                                        ${DEPARTMENTS.map(d => `<option value="${d}" ${state.ideaData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                    </select>
+                                    <input required oninput="handleFormInput('ideaData', 'title', this.value)" value="${state.ideaData.title || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Idea Title">
                                 </div>
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Description</label>
-                                    <textarea required name="description" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all text-sm font-medium" placeholder="Describe the challenge AI could solve..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black p-5 rounded-2xl uppercase tracking-widest text-xs shadow-2xl transition active:scale-[0.98]">Share Concept with Team</button>
+                                <textarea required oninput="handleFormInput('ideaData', 'description', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm" placeholder="Description...">${state.ideaData.description || ''}</textarea>
+                                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black p-5 rounded-2xl uppercase tracking-widest text-xs">Share Concept</button>
                             </form>
                         </div>
-
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             ${state.ideas.map(idea => `
                                 <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group">
-                                    <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Crowdsourced Idea</span></div>
-                                    <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight group-hover:text-blue-400 transition-colors">${idea.title}</h4>
-                                    <p class="text-slate-400 text-sm italic break-words line-clamp-4 mb-6">"${idea.description}"</p>
-                                    <div class="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between">
-                                        <div>
-                                            <p class="text-[10px] font-black text-white uppercase tracking-tighter">${idea.name || 'Anonymous'}</p>
-                                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">${idea.dept || 'General'}</p>
-                                        </div>
-                                        <i data-lucide="message-square" class="w-3 h-3 text-slate-600"></i>
-                                    </div>
+                                    <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Concept</span></div>
+                                    <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight">${idea.title}</h4>
+                                    <p class="text-slate-400 text-sm italic line-clamp-4">"${idea.description}"</p>
+                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase">By ${idea.name || 'Anonymous'}</div>
                                 </div>
                             `).join('')}
-                            ${state.ideas.length === 0 ? '<div class="col-span-full py-12 text-center opacity-30 italic">No community ideas shared yet. Be the first!</div>' : ''}
                         </div>
                     </div>
                 `;
             }
 
-            if (state.activeTab === 'winners') {
+            if (state.activeTab === 'challenge') {
                 return `
-                    <div class="max-w-6xl mx-auto space-y-12">
-                        <div class="text-center">
-                            <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2>
-                            <p class="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs mt-3 italic underline underline-offset-4 decoration-blue-500/50">10 Months of Transformation (March - Dec)</p>
+                    <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
+                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Design AI workflows to streamline acquisitions and onboarding.</p></div>
+                        
+                        <!-- Criteria Cards from Image -->
+                        <div class="grid grid-cols-3 gap-6">
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Impact</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">40%</p>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Feasibility</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">30%</p>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Innovation</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">30%</p>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            ${MONTHLY_RECORDS.map(item => `
-                                <div class="bg-slate-900 rounded-[2.5rem] p-8 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden group">
-                                    <div class="flex justify-between items-start mb-6">
-                                        <span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>
-                                        ${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-6 h-6"></i>' : item.status === 'active' ? '<div class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></div>' : ''}
+
+                        <!-- Key Criteria -->
+                        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
+                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Monthly Key Criteria</h3>
+                            <ul class="space-y-4 text-slate-300 text-sm">
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the onboarding workflow.</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
+                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Innovation</h3>
+                            
+                            <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
+                                <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
+                                <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
+                            </div>
+
+                            <form onsubmit="handleFormSubmit(event)" class="space-y-8">
+                                ${state.submissionType === 'individual' ? `
+                                    <div class="grid md:grid-cols-2 gap-6 animate-in fade-in">
+                                        <div class="space-y-2">
+                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                                            <input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
+                                        </div>
+                                        <div class="space-y-2">
+                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email (@descasio.io)</label>
+                                            <input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
+                                        </div>
+                                        <div class="space-y-2 col-span-full">
+                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Department</label>
+                                            <select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
+                                                <option value="">Select Dept</option>
+                                                ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                            </select>
+                                        </div>
                                     </div>
-                                    ${item.winner ? `
-                                        <div class="text-center space-y-4">
-                                            <div class="w-24 h-24 rounded-3xl bg-blue-600 mx-auto shadow-2xl border-4 border-white/5 flex items-center justify-center text-white font-black text-3xl">
-                                                ${item.winner.split(' ').map(n => n[0]).join('')}
-                                            </div>
-                                            <div>
-                                                <h4 class="text-2xl font-black text-white uppercase tracking-tighter leading-none">${item.winner}</h4>
-                                                <p class="text-blue-400 text-[10px] font-black uppercase mt-2 tracking-widest">${item.solution}</p>
-                                            </div>
-                                            <div class="inline-block bg-blue-600 text-white text-[9px] font-black px-4 py-2 rounded-full tracking-[0.2em] uppercase">Innovator</div>
+                                ` : `
+                                    <div class="space-y-8 animate-in slide-in-from-top-2">
+                                        <div class="space-y-2">
+                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Team Name</label>
+                                            <input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS">
                                         </div>
-                                    ` : `
-                                        <div class="py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2rem]">
-                                            <p class="text-slate-700 font-black text-xs uppercase tracking-widest">${item.status === 'active' ? 'Window Open' : 'Upcoming'}</p>
+                                        
+                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 01</span></div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label>
+                                                <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label>
+                                                <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
+                                            </div>
+                                            <div class="space-y-2 col-span-full">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label>
+                                                <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold">
+                                                    <option value="">Select Dept</option>
+                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
-                                    `}
+
+                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 02</span></div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label>
+                                                <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label>
+                                                <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
+                                            </div>
+                                            <div class="space-y-2 col-span-full">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label>
+                                                <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold">
+                                                    <option value="">Select Dept</option>
+                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `}
+
+                                <div class="pt-10 border-t border-slate-800 space-y-8">
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Innovation Name</label>
+                                        <input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Documentation shared Link</label>
+                                        <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="https://...">
+                                        <p class="text-[9px] font-black text-blue-500/50 uppercase tracking-widest mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-2.5 h-2.5"></i> Link must start with https://</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Impact & Achievements Summary</label>
+                                        <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Describe the outcome and efficiency gains...">${state.formData.achievements || ''}</textarea>
+                                    </div>
                                 </div>
-                            `).join('')}
+                                
+                                <div id="formStatus"></div>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud Hub</button>
+                            </form>
                         </div>
                     </div>
                 `;
@@ -289,48 +368,41 @@
             if (state.activeTab === 'gallery') {
                 const shortlisted = state.submissions.filter(s => s.shortlisted);
                 return `
-                    <div class="space-y-12">
-                        <section class="space-y-6">
-                            <h2 class="text-3xl font-black text-white flex items-center gap-3 italic tracking-tighter uppercase underline decoration-blue-500 decoration-4 underline-offset-8">Shortlisted for Voting</h2>
-                            <div class="grid md:grid-cols-3 gap-6">
+                    <div class="space-y-12 animate-in fade-in">
+                        <section class="space-y-8">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
+                                <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8">Shortlisted for Voting</h2></div>
+                                <a href="${EXTERNAL_VOTING_URL}" target="_blank" class="btn-shiny text-white px-12 py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.1em] shadow-2xl transition hover:scale-110 flex items-center justify-center gap-4">
+                                    <i data-lucide="vote" class="w-6 h-6"></i> CAST OFFICIAL VOTE
+                                </a>
+                            </div>
+                            <div class="grid md:grid-cols-3 gap-8">
                                 ${shortlisted.map(item => `
-                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-3xl p-6 flex flex-col h-full bg-blue-500/5 shadow-2xl">
-                                        <div class="flex justify-between items-center mb-6">
-                                            <span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">${item.dept}</span>
-                                            <a href="${item.docLink}" target="_blank" class="bg-blue-600/10 text-blue-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase border border-blue-400/20">Docs <i data-lucide="external-link" class="inline w-3 h-3 ml-1"></i></a>
-                                        </div>
-                                        <h3 class="text-2xl font-black text-white mb-2 uppercase tracking-tighter leading-tight">${item.innovationName}</h3>
-                                        <p class="text-slate-500 text-[10px] mb-6 uppercase tracking-widest font-bold">BY ${item.name}</p>
-                                        <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-2xl p-5 border border-white/5 mb-6 hover:border-blue-500/40 transition-all overflow-hidden group">
-                                            <p class="text-xs font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 fill-blue-400"></i> Impact Overview</p>
-                                            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 break-all">${item.achievements}</p>
-                                            <div class="text-[9px] font-black text-blue-500/50 mt-4 uppercase underline tracking-widest group-hover:text-blue-400 transition-colors">Details & Feedback</div>
+                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
+                                        <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
+                                        <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter">${item.innovationName}</h3>
+                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 hover:border-blue-500/40 transition-all overflow-hidden group-hover:shadow-inner">
+                                            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 break-all italic">"${item.achievements}"</p>
+                                            <div class="text-[9px] font-black text-blue-500/50 mt-4 uppercase underline underline-offset-4 tracking-widest group-hover:text-blue-400 transition-colors">Details & Analysis</div>
                                         </button>
-                                        <div class="mt-auto pt-6 border-t border-slate-800 flex justify-between items-center">
-                                            <div class="flex items-center gap-2"><i data-lucide="award" class="text-blue-500 w-5 h-5"></i> <span class="font-mono text-xl font-black text-white">${item.votes || 0}</span></div>
-                                            <button onclick="vote('${item.id}')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl transition active:scale-95">VOTE</button>
-                                        </div>
+                                        <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
                                     </div>
                                 `).join('')}
-                                ${shortlisted.length === 0 ? '<div class="col-span-full py-20 text-center border-2 border-dashed border-slate-800 rounded-3xl"><p class="text-slate-600 font-black uppercase tracking-widest">Admin review in progress...</p></div>' : ''}
+                                ${shortlisted.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Admin verification in progress...</div>' : ''}
                             </div>
                         </section>
 
-                        <section class="space-y-6">
-                            <h2 class="text-2xl font-black text-slate-300 flex items-center gap-3 italic tracking-tighter uppercase"><i data-lucide="users" class="text-slate-500"></i> Submission Feed</h2>
+                        <section class="space-y-8">
+                            <h2 class="text-2xl font-black text-slate-400 flex items-center gap-4 italic tracking-tighter uppercase leading-none"><i data-lucide="users" class="text-slate-600"></i> Submission Feed</h2>
                             <div class="grid md:grid-cols-3 gap-6">
                                 ${state.submissions.map(item => `
-                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-2xl p-5 flex flex-col h-full ${item.shortlisted ? 'border-blue-500/20 bg-blue-500/5' : ''}">
-                                        <div class="flex justify-between items-center mb-4">
-                                            <span class="text-[9px] font-black uppercase text-slate-500 tracking-widest">${item.dept}</span>
-                                        </div>
-                                        <h4 class="text-white font-black text-sm mb-3 uppercase tracking-tight">${item.innovationName}</h4>
-                                        <button onclick="showDetails('${item.id}')" class="bg-black/20 rounded-xl p-4 border border-white/5 mb-4 text-left group">
-                                            <p class="text-[10px] text-slate-400 leading-snug line-clamp-3 italic break-all group-hover:text-slate-200 transition-colors">${item.achievements}</p>
-                                        </button>
-                                        <div class="mt-auto flex items-center justify-between pt-3 border-t border-slate-800/50">
-                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.name}</p>
-                                            <a href="${item.docLink}" target="_blank" class="text-blue-400"><i data-lucide="file-text" class="w-4 h-4"></i></a>
+                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-slate-700 transition-all">
+                                        <div class="flex justify-between items-center mb-6"><span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">${item.type === 'group' ? 'GROUP' : (item.dept || 'GEN')}</span></div>
+                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight">${item.innovationName}</h4>
+                                        <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-800/50">
+                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[120px]">${item.type === 'group' ? item.teamName : item.name}</p>
+                                            <a href="${item.docLink}" target="_blank" class="text-blue-500 hover:text-blue-400 transition-colors"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -340,35 +412,25 @@
                 `;
             }
 
-            if (state.activeTab === 'challenge') {
+            if (state.activeTab === 'winners') {
                 return `
-                    <div class="max-w-3xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
-                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg max-w-xl mx-auto opacity-70">Define the future of Descasio. Build AI-driven workflows to streamline client acquisition and onboarding.</p></div>
-                        
-                        <div class="grid grid-cols-3 gap-4">
-                            ${[{label:"Impact", weight:"40%"},{label:"Feasibility", weight:"30%"},{label:"Innovation", weight:"30%"}].map(c => `
-                                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-center">
-                                    <p class="text-blue-400 font-black text-xs uppercase mb-1">${c.label}</p>
-                                    <p class="text-2xl font-black text-white">${c.weight}</p>
+                    <div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500">
+                        <div class="text-center">
+                            <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2>
+                            <p class="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-4 italic underline underline-offset-8 decoration-blue-500/50">Celebrating the AI Transformation Journey</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            ${MONTHLY_RECORDS.map(item => `
+                                <div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden">
+                                    <div class="flex justify-between items-start mb-8">
+                                        <span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>
+                                        ${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}
+                                    </div>
+                                    <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]">
+                                        <p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p>
+                                    </div>
                                 </div>
                             `).join('')}
-                        </div>
-
-                        <div class="bg-slate-900 border-2 border-blue-500/20 rounded-3xl p-10 shadow-2xl">
-                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Innovation</h3>
-                            <form onsubmit="handleFormSubmit(event)" class="space-y-6">
-                                <div class="grid md:grid-cols-2 gap-6">
-                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Full Name</label><input required name="name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold"></div>
-                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email (@descasio.io)</label><input required name="email" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold"></div>
-                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label><select name="dept" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold">${DEPARTMENTS.map(d => `<option value="${d}">${d}</option>`).join('')}</select></div>
-                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Innovation Name</label><input required name="innovationName" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-bold"></div>
-                                </div>
-                                <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Documentation shared Link</label><input required name="docLink" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all font-mono text-xs italic"></div>
-                                <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Impact & Achievements Summary</label><textarea required name="achievements" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 transition-all text-sm font-medium"></textarea></div>
-                                
-                                <div id="formStatus"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition shadow-2xl uppercase tracking-widest active:scale-[0.98]">Broadcast Innovation</button>
-                            </form>
                         </div>
                     </div>
                 `;
@@ -377,24 +439,22 @@
             if (state.activeTab === 'admin') {
                 return `
                     <div class="space-y-6">
-                        <div class="flex justify-between items-end border-b border-slate-800 pb-8">
-                            <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Admin Control</h2><p class="text-slate-500 text-xs font-black uppercase tracking-widest mt-2">Shortlist & Management</p></div>
-                            <button onclick="logoutAdmin()" class="bg-red-600/10 text-red-500 text-[10px] font-black uppercase p-3 rounded-xl border border-red-500/20">Sign Out</button>
-                        </div>
-                        <div class="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl">
+                        <div class="flex justify-between items-end border-b border-slate-800 pb-10"><div><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Admin Control</h2></div><button onclick="logoutAdmin()" class="bg-red-600/10 text-red-500 text-[10px] font-black uppercase px-6 py-3 rounded-xl border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">Sign Out</button></div>
+                        <div class="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 shadow-2xl">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800">
-                                    <tr><th class="p-5">Innovator</th><th class="p-5">Solution</th><th class="p-5">Docs</th><th class="p-5 text-center">Shortlist</th></tr>
-                                </thead>
+                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Origin / Team</th><th class="p-6">Innovation Solution</th><th class="p-6">Documentation</th><th class="p-6 text-center">Shortlist</th></tr></thead>
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.submissions.map(sub => `
                                         <tr class="hover:bg-white/5 transition">
-                                            <td class="p-5"><b>${sub.name}</b><br><span class="opacity-50 italic text-[10px]">${sub.email}</span></td>
-                                            <td class="p-5 font-black uppercase text-blue-100">${sub.innovationName}</td>
-                                            <td class="p-5"><a href="${sub.docLink}" target="_blank" class="text-blue-500 font-black underline underline-offset-4">LINK</a></td>
-                                            <td class="p-5 text-center">
-                                                <button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-3 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black' : 'bg-slate-800 text-slate-500'} transition shadow-lg">
-                                                    <i data-lucide="star" class="w-5 h-5 ${sub.shortlisted ? 'fill-black' : ''}"></i>
+                                            <td class="p-6">
+                                                <b class="text-white uppercase tracking-tight">${sub.type === 'group' ? sub.teamName : sub.name}</b><br>
+                                                <span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span>
+                                            </td>
+                                            <td class="p-6 font-black uppercase text-blue-100">${sub.innovationName}</td>
+                                            <td class="p-6"><a href="${sub.docLink}" target="_blank" class="text-blue-500 font-black underline underline-offset-4 hover:text-blue-400">ACCESS DOCS</a></td>
+                                            <td class="p-6 text-center">
+                                                <button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black shadow-yellow-500/30 shadow-xl' : 'bg-slate-800 text-slate-500'} transition-all hover:scale-110">
+                                                    <i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -410,21 +470,31 @@
         function renderModal() {
             const item = state.selectedInnovation;
             return `
-                <div class="fixed inset-0 z-[110] bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div class="bg-slate-900 max-w-2xl w-full p-10 rounded-[3rem] border-2 border-blue-500/30 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-card">
-                        <button onclick="closeModal()" class="absolute top-8 right-8 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
-                        <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.dept}</span>
-                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none mt-6 mb-4">${item.innovationName}</h3>
-                        <p class="text-slate-500 text-xs font-black uppercase tracking-widest mb-10 flex items-center gap-2"><i data-lucide="user" class="w-3 h-3"></i> By ${item.name} • ${item.email}</p>
+                <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
+                        <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
+                        <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span>
+                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6">${item.innovationName}</h3>
                         
-                        <div class="bg-black/50 rounded-3xl p-8 border border-white/5 mb-10 shadow-inner">
-                            <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-6"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Impact Overview</h4>
-                            <p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap">${item.achievements}</p>
+                        <div class="space-y-4 mb-12">
+                            ${item.type === 'group' ? `
+                                <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
+                                <div class="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-3">
+                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div>
+                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div>
+                                </div>
+                            ` : `
+                                <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
+                            `}
+                        </div>
+                        
+                        <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
+                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Strategic Analysis</h4>
+                            <p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap">"${item.achievements}"</p>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black text-center uppercase tracking-widest text-[10px] shadow-2xl transition active:scale-95">Access Documentation <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
-                            <div class="bg-slate-800 p-5 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-center gap-2 shadow-xl"><i data-lucide="award" class="w-4 h-4"></i> ${item.votes || 0} Votes Recorded</div>
+                        <div class="flex flex-col gap-4">
+                            <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Download Core Documentation <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
                         </div>
                     </div>
                 </div>
@@ -434,34 +504,31 @@
         function renderAdminLogin() {
             return `
                 <div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300">
-                    <div class="bg-slate-900 max-w-md w-full p-10 rounded-[2.5rem] border-2 border-slate-800 shadow-2xl text-center custom-card">
-                        <div class="w-20 h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-blue-500/20"><i data-lucide="lock" class="text-blue-500 w-10 h-10"></i></div>
-                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-8">Admin Authorization</h3>
-                        <input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-4 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-widest mb-8" placeholder="••••">
+                    <div class="bg-slate-900 max-w-md w-full p-12 rounded-[3rem] border-2 border-slate-800 shadow-2xl text-center custom-card">
+                        <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div>
+                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10">Admin Access Restricted</h3>
+                        <input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••">
                         <div class="flex gap-4">
-                            <button onclick="toggleAdminLogin()" class="flex-1 p-4 rounded-xl border border-slate-800 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition">ABORT</button>
-                            <button onclick="authorizeAdmin()" class="flex-1 p-4 rounded-xl bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 shadow-2xl transition">VERIFY</button>
+                            <button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button>
+                            <button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition">VERIFY</button>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        // --- Controller Functions ---
+        // --- Controller Logic ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
         function authorizeAdmin() { if (document.getElementById('adminCode').value === '()_+') { state.isAdmin = true; state.showAdminLogin = false; state.activeTab = 'admin'; } updateUI(); }
         function logoutAdmin() { state.isAdmin = false; state.activeTab = 'dashboard'; updateUI(); }
         function closeModal() { state.selectedInnovation = null; updateUI(); }
         function showDetails(id) { state.selectedInnovation = state.submissions.find(s => s.id === id); updateUI(); }
+        function setSubmissionType(type) { state.submissionType = type; updateUI(); }
 
-        async function vote(id) {
-            if (state.voted.has(id)) return;
-            try {
-                const docRef = db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').doc(id);
-                await docRef.update({ votes: firebase.firestore.FieldValue.increment(1) });
-                state.voted.add(id);
-            } catch (e) { console.error(e); }
+        // Prevents data loss during background updates
+        function handleFormInput(stateKey, field, value) {
+            state[stateKey][field] = value;
         }
 
         async function toggleShortlist(id, current) {
@@ -473,16 +540,25 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-            if (!data.email.toLowerCase().endsWith('@descasio.io')) {
-                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-4">Restricted to @descasio.io emails.</p>`;
+            const data = state.formData;
+            
+            // Check emails for corporate restriction
+            const emailsToCheck = state.submissionType === 'individual' ? [data.email] : [data.member1Email, data.member2Email];
+            const invalidEmails = emailsToCheck.some(email => !email || !email.toLowerCase().endsWith('@descasio.io'));
+
+            if (invalidEmails) {
+                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">Restricted to @descasio.io corporate emails.</p>`;
                 return;
             }
+
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').add({
-                    ...data, votes: 0, shortlisted: false, timestamp: new Date().toISOString()
+                    ...data,
+                    type: state.submissionType,
+                    shortlisted: false,
+                    timestamp: new Date().toISOString()
                 });
+                state.formData = {}; // Clear memory
                 state.activeTab = 'gallery';
                 updateUI();
             } catch (err) { console.error(err); }
@@ -490,18 +566,18 @@
 
         async function handleIdeaSubmit(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
+            const data = state.ideaData;
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas').add({
                     ...data, timestamp: new Date().toISOString()
                 });
-                e.target.reset();
-                alert("Thank you! Your AI concept has been shared with the community.");
+                state.ideaData = {}; // Clear memory
+                alert("AI Concept recorded. Thank you for contributing!");
                 updateUI();
             } catch (err) { console.error(err); }
         }
 
+        // --- Lifecycle & Persistence ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 await auth.signInAnonymously();
@@ -515,14 +591,14 @@
                     state.submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     state.submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     updateUI();
-                  });
+                  }, (err) => console.error(err));
 
                 db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas')
                   .onSnapshot((snapshot) => {
                     state.ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     updateUI();
-                  });
+                  }, (err) => console.error(err));
             }
         });
 
