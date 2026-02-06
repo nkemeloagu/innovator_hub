@@ -103,6 +103,7 @@
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth();
+            
             const startOfWindow = new Date(year, month, 1, 0, 0, 0);
             const endOfWindow = new Date(year, month, 20, 23, 59, 59);
             let targetDate, label;
@@ -155,9 +156,14 @@
                 ${state.selectedInnovation ? renderModal() : ''}
                 ${state.showAdminLogin ? renderAdminLogin() : ''}
 
-                <footer class="max-w-7xl mx-auto p-8 border-t border-slate-900 flex flex-col items-center gap-2 text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em] mt-20 italic underline decoration-blue-500/30 underline-offset-4">
-                    <p>© 2025 Organization AI Innovation Program</p>
-                    <p class="opacity-40 tracking-widest">Descasio Proprietary Direct Cloud Engine</p>
+                <footer class="max-w-7xl mx-auto p-8 border-t border-slate-900 flex flex-col items-center gap-2 mt-20 text-center">
+                    <p class="text-blue-400 text-sm font-black uppercase tracking-[0.15em] mb-4">
+                        For Support and Feedback, email ai-innovation-hub@descasio.io
+                    </p>
+                    <div class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em] italic underline decoration-blue-500/30 underline-offset-4">
+                        <p>© 2025 Organization AI Innovation Program</p>
+                        <p class="opacity-40 tracking-widest mt-1">Descasio Proprietary Direct Cloud Engine</p>
+                    </div>
                 </footer>
             `;
             lucide.createIcons();
@@ -241,7 +247,6 @@
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                         <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Design AI workflows to streamline acquisitions and onboarding.</p></div>
                         
-                        <!-- Criteria Cards from Image -->
                         <div class="grid grid-cols-3 gap-6">
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
                                 <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Impact</p>
@@ -257,7 +262,6 @@
                             </div>
                         </div>
 
-                        <!-- Key Criteria -->
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Monthly Key Criteria</h3>
                             <ul class="space-y-4 text-slate-300 text-sm">
@@ -517,7 +521,7 @@
             `;
         }
 
-        // --- Controller Logic ---
+        // --- Helpers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
         function authorizeAdmin() { if (document.getElementById('adminCode').value === '()_+') { state.isAdmin = true; state.showAdminLogin = false; state.activeTab = 'admin'; } updateUI(); }
@@ -525,11 +529,7 @@
         function closeModal() { state.selectedInnovation = null; updateUI(); }
         function showDetails(id) { state.selectedInnovation = state.submissions.find(s => s.id === id); updateUI(); }
         function setSubmissionType(type) { state.submissionType = type; updateUI(); }
-
-        // Prevents data loss during background updates
-        function handleFormInput(stateKey, field, value) {
-            state[stateKey][field] = value;
-        }
+        function handleFormInput(stateKey, field, value) { state[stateKey][field] = value; }
 
         async function toggleShortlist(id, current) {
             try {
@@ -541,13 +541,11 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             const data = state.formData;
-            
-            // Check emails for corporate restriction
             const emailsToCheck = state.submissionType === 'individual' ? [data.email] : [data.member1Email, data.member2Email];
             const invalidEmails = emailsToCheck.some(email => !email || !email.toLowerCase().endsWith('@descasio.io'));
 
             if (invalidEmails) {
-                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">Restricted to @descasio.io corporate emails.</p>`;
+                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">Restricted to @descasio.io emails.</p>`;
                 return;
             }
 
@@ -558,7 +556,7 @@
                     shortlisted: false,
                     timestamp: new Date().toISOString()
                 });
-                state.formData = {}; // Clear memory
+                state.formData = {}; 
                 state.activeTab = 'gallery';
                 updateUI();
             } catch (err) { console.error(err); }
@@ -571,17 +569,15 @@
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas').add({
                     ...data, timestamp: new Date().toISOString()
                 });
-                state.ideaData = {}; // Clear memory
-                alert("AI Concept recorded. Thank you for contributing!");
+                state.ideaData = {};
+                alert("Concept recorded!");
                 updateUI();
             } catch (err) { console.error(err); }
         }
 
-        // --- Lifecycle & Persistence ---
         auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                await auth.signInAnonymously();
-            } else {
+            if (!user) { await auth.signInAnonymously(); }
+            else {
                 state.user = user;
                 updateCountdown();
                 setInterval(() => { updateCountdown(); updateUI(); }, 30000);
@@ -601,7 +597,6 @@
                   }, (err) => console.error(err));
             }
         });
-
     </script>
 </body>
 </html>
