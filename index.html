@@ -278,7 +278,73 @@
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
                             <ul class="space-y-4 text-slate-300 text-sm">
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Accuracy & Hallucination Control: Does the bot cite its sources (e.g., "According to the 2024 Employee Handbook...", Does it provide correct information for tricky questions (e.g., "How many days of paternity leave do I get?, Points are awarded if the bot gracefully admits when information is missing rather than making up a policy")?)?.</li>
+                                    <!-- Evaluation List -->
+        <ul class="space-y-10">
+            <!-- Accuracy & Hallucination Control -->
+            <li class="flex items-start gap-5 group">
+                <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-white font-bold text-xl mb-4">Accuracy & Hallucination Control</h3>
+                    <div class="space-y-4 text-slate-300 leading-relaxed">
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>Does the bot cite its sources? <span class="text-xs text-blue-300 italic opacity-80">(e.g., "According to the 2024 Employee Handbook...")</span></span>
+                        </p>
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>Does it provide correct information for tricky questions?</span>
+                        </p>
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>Points are awarded if the bot gracefully admits when information is missing rather than making up a policy.</span>
+                        </p>
+                    </div>
+                </div>
+            </li>
+
+            <!-- Tone -->
+            <li class="flex items-start gap-5 group">
+                <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                    <i data-lucide="message-square" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-white font-bold text-xl mb-4">Tone</h3>
+                    <div class="space-y-4 text-slate-300 leading-relaxed">
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>Does the bot sound like a <span class="highlight-text font-medium italic">"Descasio Team Member"</span>—professional, helpful, and culturally aligned?</span>
+                        </p>
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>Is the interface intuitive? <span class="text-xs text-blue-300 italic opacity-80">(e.g., does it offer follow-up questions like "Would you like to know more about...?")</span></span>
+                        </p>
+                    </div>
+                </div>
+            </li>
+
+            <!-- User Experience -->
+            <li class="flex items-start gap-5 group">
+                <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                    <i data-lucide="layout" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-white font-bold text-xl mb-4">User Experience</h3>
+                    <div class="space-y-4 text-slate-300 leading-relaxed">
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>How professional, clean, and <span class="highlight-text font-semibold">"Descasio-branded"</span> does the interface look?</span>
+                        </p>
+                        <p class="flex items-start gap-3">
+                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                            <span>Are visual elements consistent with the company's design language?</span>
+                        </p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Accuracy & Hallucination Control: Does the bot cite its sources (e.g., "According to the 2024 Employee Handbook...",Does it provide correct information for tricky questions (e.g., "How many days of paternity leave do I get?, Points are awarded if the bot gracefully admits when information is missing rather than making up a policy")?)?.</li>
                                 <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Tone: Does the bot sound like a "Descasio Team Member"; professional and helpful?, Is the interface intuitive? (e.g., does it offer follow-up questions like "Would you like to know more about...?") .</li>
                                 <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> User Experience: How professional, clean, and "Descasio-branded" does the interface look.</li>
                             </ul>
