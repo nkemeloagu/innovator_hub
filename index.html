@@ -80,7 +80,7 @@
         // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
         
-        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Enterprise AI Strategy Framework", month: "April", avatar: "FO" };
+        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Champioining AI", month: "April", avatar: "FO" };
 
         const MONTHLY_RECORDS = [
             { month: "March", winner: null, solution: null, status: "upcoming" },
@@ -190,8 +190,8 @@
                             <div class="grid md:grid-cols-2 gap-8 items-center relative z-10">
                                 <div>
                                     <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Active Campaign</span>
-                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">Optimizing Client Onboarding with AI</h2>
-                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Drive growth with Descasio's monthly challenge. Automate touchpoints while keeping the human touch.</p>
+                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">HR Bot Challenge</h2>
+                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Create an AI-powered agent that can accurately navigate Descasio’s internal policies, culture, and operational procedures to provide instant, conversational answers to employee queries.</p>
                                     
                                     <div class="flex flex-wrap gap-4 items-center">
                                         <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4"></i></button>
@@ -258,29 +258,29 @@
             if (state.activeTab === 'challenge') {
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
-                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Design AI workflows to streamline acquisitions and onboarding.</p></div>
+                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Create an AI-powered agent that can accurately navigate Descasio’s internal policies, culture, and operational procedures to provide instant, conversational answers to employee queries.</p></div>
                         
                         <div class="grid grid-cols-3 gap-6">
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Impact</p>
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Accuracy & Hallucination Control</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">50%</p>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Tone</p>
                                 <p class="text-4xl font-black text-white italic tracking-tighter">40%</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Feasibility</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">30%</p>
-                            </div>
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Innovation</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">30%</p>
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">User Experience</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">10%</p>
                             </div>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
-                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Monthly Key Criteria</h3>
+                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
                             <ul class="space-y-4 text-slate-300 text-sm">
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the onboarding workflow.</li>
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Accuracy & Hallucination Control: Does the bot cite its sources (e.g., "According to the 2024 Employee Handbook...", Does it provide correct information for tricky questions (e.g., "How many days of paternity leave do I get?, Points are awarded if the bot gracefully admits when information is missing rather than making up a policy")?)?.</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Tone: Does the bot sound like a "Descasio Team Member"; professional and helpful?, Is the interface intuitive? (e.g., does it offer follow-up questions like "Would you like to know more about...?") .</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> User Experience: How professional, clean, and "Descasio-branded" does the interface look.</li>
                             </ul>
                         </div>
 
