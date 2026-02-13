@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5KTSDYSV96"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-5KTSDYSV96');
-</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5KTSDYSV96"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5KTSDYSV96');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DESCASIO | Innovation Hub</title>
@@ -25,6 +24,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -35,7 +36,6 @@
         .custom-card { background: linear-gradient(145deg, #0f172a, #020617); border: 1px solid #1e293b; }
         .hero-gradient { background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 50%, #020617 100%); }
         
-        /* Shiny / Glowing Button Styles */
         .btn-shiny {
             background: linear-gradient(-45deg, #4f46e5, #7c3aed, #2563eb, #4f46e5);
             background-size: 400% 400%;
@@ -62,6 +62,9 @@
     </div>
 
     <script>
+        // --- EmailJS Initialization ---
+        emailjs.init("LF76ppQ83bSQ3ggtK");
+
         // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyBrRmGnPm3WcK2GKQqN_lAEvJJZPgXVdxw",
@@ -79,8 +82,10 @@
 
         // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
-        
         const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Champioining AI", month: "April", avatar: "FO" };
+        
+        // ADMIN_HASH: Hashed password for "$98#"
+        let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
 
         const MONTHLY_RECORDS = [
             { month: "March", winner: null, solution: null, status: "upcoming" },
@@ -97,6 +102,11 @@
 
         let state = {
             user: null,
+            isAuthenticated: false, // Access Gateway status
+            gatewayView: 'email', // 'email' or 'otp'
+            authEmail: '',
+            generatedOtp: null,
+            otpExpiry: null,
             activeTab: 'dashboard',
             submissionType: 'individual',
             submissions: [],
@@ -106,17 +116,81 @@
             showAdminLogin: false,
             timeLeft: { days: 0, hours: 0, mins: 0, label: "HUNT ENDS" },
             formData: {},
-            ideaData: {}
+            ideaData: {},
+            loading: false
         };
 
         const EXTERNAL_VOTING_URL = "https://surveymars.com/q/7JKogeul9";
 
-        // --- Countdown Logic (1st to 20th) ---
+        // --- Helper for Hashing ---
+        async function hashString(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- Authentication Logic ---
+        async function requestOtp() {
+            const email = document.getElementById('gatewayEmail').value.trim().toLowerCase();
+            if (!email.endsWith('@descasio.io')) {
+                showGatewayError("Access restricted to @descasio.io email addresses.");
+                return;
+            }
+
+            state.loading = true;
+            updateUI();
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const expiry = Date.now() + (60 * 60 * 1000); // 1 hour validity
+
+            try {
+                await emailjs.send("service_v9ysmxt", "template_20x7ujf", {
+                    to_email: email,
+                    otp_code: otp
+                });
+                state.authEmail = email;
+                state.generatedOtp = otp;
+                state.otpExpiry = expiry;
+                state.gatewayView = 'otp';
+                state.loading = false;
+                updateUI();
+            } catch (err) {
+                console.error(err);
+                showGatewayError("Failed to send code. Please check your connection.");
+                state.loading = false;
+                updateUI();
+            }
+        }
+
+        function verifyOtp() {
+            const entered = document.getElementById('gatewayOtp').value.trim();
+            if (Date.now() > state.otpExpiry) {
+                showGatewayError("Code has expired. Please request a new one.");
+                return;
+            }
+            if (entered === state.generatedOtp) {
+                state.isAuthenticated = true;
+                updateUI();
+            } else {
+                showGatewayError("Invalid access code.");
+            }
+        }
+
+        function showGatewayError(msg) {
+            const errEl = document.getElementById('gatewayError');
+            if (errEl) {
+                errEl.innerText = msg;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        // --- Countdown Logic ---
         function updateCountdown() {
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth();
-            
             const startOfWindow = new Date(year, month, 1, 0, 0, 0);
             const endOfWindow = new Date(year, month, 20, 23, 59, 59);
             let targetDate, label;
@@ -137,6 +211,13 @@
         function updateUI() {
             const app = document.getElementById('app');
             if (!state.user) return;
+
+            // Access Gateway Guard
+            if (!state.isAuthenticated) {
+                app.innerHTML = renderLoginGateway();
+                lucide.createIcons();
+                return;
+            }
 
             app.innerHTML = `
                 <nav class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 px-6 py-4">
@@ -182,6 +263,38 @@
             lucide.createIcons();
         }
 
+        function renderLoginGateway() {
+            return `
+                <div class="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden">
+                    <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-900/20 blur-[120px] rounded-full"></div>
+                    <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-indigo-900/20 blur-[120px] rounded-full"></div>
+
+                    <div class="w-full max-w-md bg-[#0f172a] rounded-[2.5rem] border border-slate-800 p-12 shadow-2xl relative z-10 text-center">
+                        <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-lg shadow-blue-500/20">
+                            <i data-lucide="zap" class="text-white w-10 h-10"></i>
+                        </div>
+                        <h2 class="text-white text-4xl font-black italic tracking-tighter uppercase mb-2">DESCASIO</h2>
+                        <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-12">Innovation Hub Gateway</p>
+
+                        ${state.gatewayView === 'email' ? `
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 24-hour access code.</p>
+                            <input id="gatewayEmail" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-bold mb-6" placeholder="name@descasio.io" value="${state.authEmail}">
+                            <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
+                            <button onclick="requestOtp()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-50 transition shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
+                                ${state.loading ? '<div class="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>' : 'REQUEST ACCESS CODE'}
+                            </button>
+                        ` : `
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter the 6-digit code sent to <br><b class="text-blue-400">${state.authEmail}</b></p>
+                            <input id="gatewayOtp" type="text" maxlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-mono tracking-[0.5em] text-2xl font-bold mb-6" placeholder="000000">
+                            <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
+                            <button onclick="verifyOtp()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-500 transition shadow-xl active:scale-[0.98] mb-4">VERIFY & ENTER</button>
+                            <button onclick="state.gatewayView = 'email'; updateUI();" class="text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition">Back to Email</button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
         function renderTabContent() {
             if (state.activeTab === 'dashboard') {
                 return `
@@ -192,7 +305,6 @@
                                     <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Active Campaign</span>
                                     <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">HR Bot Challenge</h2>
                                     <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Create an AI-powered agent that can accurately navigate Descasio’s internal policies, culture, and operational procedures to provide instant, conversational answers to employee queries.</p>
-                                    
                                     <div class="flex flex-wrap gap-4 items-center">
                                         <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4"></i></button>
                                         <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white">
@@ -230,7 +342,7 @@
                             <form onsubmit="handleIdeaSubmit(event)" class="space-y-6">
                                 <div class="grid md:grid-cols-2 gap-6">
                                     <input required oninput="handleFormInput('ideaData', 'name', this.value)" value="${state.ideaData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Full Name">
-                                    <input required oninput="handleFormInput('ideaData', 'email', this.value)" value="${state.ideaData.email || ''}" type="email" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Work Email">
+                                    <input required oninput="handleFormInput('ideaData', 'email', this.value)" value="${state.ideaData.email || ''}" type="email" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Work Email (@descasio.io)">
                                     <select onchange="handleFormInput('ideaData', 'dept', this.value)" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm">
                                         <option value="">Select Dept</option>
                                         ${DEPARTMENTS.map(d => `<option value="${d}" ${state.ideaData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
@@ -238,16 +350,17 @@
                                     <input required oninput="handleFormInput('ideaData', 'title', this.value)" value="${state.ideaData.title || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Idea Title">
                                 </div>
                                 <textarea required oninput="handleFormInput('ideaData', 'description', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm" placeholder="Description...">${state.ideaData.description || ''}</textarea>
+                                <div id="ideaStatus"></div>
                                 <button type="submit" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black p-5 rounded-2xl uppercase tracking-widest text-xs">Share Concept</button>
                             </form>
                         </div>
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             ${state.ideas.map(idea => `
-                                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group">
+                                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group overflow-hidden">
                                     <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Concept</span></div>
-                                    <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight">${idea.title}</h4>
-                                    <p class="text-slate-400 text-sm italic line-clamp-4">"${idea.description}"</p>
-                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase">By ${idea.name || 'Anonymous'}</div>
+                                    <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight break-words">${idea.title}</h4>
+                                    <p class="text-slate-400 text-sm italic line-clamp-4 break-words">"${idea.description}"</p>
+                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase truncate">By ${idea.name || 'Anonymous'}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -259,183 +372,86 @@
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                         <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Create an AI-powered agent that can accurately navigate Descasio’s internal policies, culture, and operational procedures to provide instant, conversational answers to employee queries.</p></div>
-                        
                         <div class="grid grid-cols-3 gap-6">
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Accuracy & Hallucination Control</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">50%</p>
-                            </div>
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Tone</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">40%</p>
-                            </div>
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">User Experience</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">10%</p>
-                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl"><p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Accuracy & Hallucination Control</p><p class="text-4xl font-black text-white italic tracking-tighter">50%</p></div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl"><p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Tone</p><p class="text-4xl font-black text-white italic tracking-tighter">40%</p></div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl"><p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">User Experience</p><p class="text-4xl font-black text-white italic tracking-tighter">10%</p></div>
                         </div>
-
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
-                            <ul class="space-y-4 text-slate-300 text-sm">
-                                    <!-- Evaluation List -->
-        <ul class="space-y-10">
-            <!-- Accuracy & Hallucination Control -->
-            <li class="flex items-start gap-5 group">
-                <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                    <i data-lucide="shield-check" class="w-6 h-6"></i>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-white font-bold text-xl mb-4">Accuracy & Hallucination Control</h3>
-                    <div class="space-y-4 text-slate-300 leading-relaxed">
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>Does the bot cite its sources? <span class="text-xs text-blue-300 italic opacity-80">(e.g., "According to the 2024 Employee Handbook...")</span></span>
-                        </p>
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>Does it provide correct information for tricky questions?</span>
-                        </p>
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>Points are awarded if the bot gracefully admits when information is missing rather than making up a policy.</span>
-                        </p>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Tone -->
-            <li class="flex items-start gap-5 group">
-                <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                    <i data-lucide="message-square" class="w-6 h-6"></i>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-white font-bold text-xl mb-4">Tone</h3>
-                    <div class="space-y-4 text-slate-300 leading-relaxed">
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>Does the bot sound like a <span class="highlight-text font-medium italic">"Descasio Team Member"</span>—professional, helpful, and culturally aligned?</span>
-                        </p>
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>Is the interface intuitive? <span class="text-xs text-blue-300 italic opacity-80">(e.g., does it offer follow-up questions like "Would you like to know more about...?")</span></span>
-                        </p>
-                    </div>
-                </div>
-            </li>
-
-            <!-- User Experience -->
-            <li class="flex items-start gap-5 group">
-                <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                    <i data-lucide="layout" class="w-6 h-6"></i>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-white font-bold text-xl mb-4">User Experience</h3>
-                    <div class="space-y-4 text-slate-300 leading-relaxed">
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>How professional, clean, and <span class="highlight-text font-semibold">"Descasio-branded"</span> does the interface look?</span>
-                        </p>
-                        <p class="flex items-start gap-3">
-                            <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
-                            <span>Are visual elements consistent with the company's design language?</span>
-                        </p>
-                    </div>
-                </div>
-            </li>
-        </ul>
-                        
-                    </div>
+                            <ul class="space-y-10">
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4">Accuracy & Hallucination Control</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Does the bot cite its sources? <span class="text-xs text-blue-300 italic opacity-80">(e.g., "According to the 2024 Employee Handbook...")</span></span></p>
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Does it provide correct information for tricky questions?</span></p>
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Points are awarded if the bot gracefully admits when information is missing rather than making up a policy.</span></p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300"><i data-lucide="message-square" class="w-6 h-6"></i></div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4">Tone</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Does the bot sound like a <span class="font-medium italic text-blue-400">"Descasio Team Member"</span>—professional, helpful, and culturally aligned?</span></p>
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Is the interface intuitive? <span class="text-xs text-blue-300 italic opacity-80">(e.g., does it offer follow-up questions like "Would you like to know more about...?")</span></span></p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300"><i data-lucide="layout" class="w-6 h-6"></i></div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4">User Experience</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>How professional, clean, and <span class="font-semibold text-blue-400">"Descasio-branded"</span> does the interface look?</span></p>
+                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Are visual elements consistent with the company's design language?</span></p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
                             <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Innovation</h3>
-                            
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
                                 <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
                                 <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
                             </div>
-
                             <form onsubmit="handleFormSubmit(event)" class="space-y-8">
                                 ${state.submissionType === 'individual' ? `
                                     <div class="grid md:grid-cols-2 gap-6 animate-in fade-in">
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                                            <input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                        </div>
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email (@descasio.io)</label>
-                                            <input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                        </div>
-                                        <div class="space-y-2 col-span-full">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Department</label>
-                                            <select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                                <option value="">Select Dept</option>
-                                                ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                            </select>
-                                        </div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label><input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email (@descasio.io)</label><input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                        <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Department</label><select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
                                     </div>
                                 ` : `
                                     <div class="space-y-8 animate-in slide-in-from-top-2">
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Team Name</label>
-                                            <input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS">
-                                        </div>
-                                        
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS"></div>
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 01</span></div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label>
-                                                <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
-                                            </div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label>
-                                                <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
-                                            </div>
-                                            <div class="space-y-2 col-span-full">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label>
-                                                <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold">
-                                                    <option value="">Select Dept</option>
-                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                                </select>
-                                            </div>
+                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label><input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
+                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label><input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
+                                            <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label><select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
                                         </div>
-
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 02</span></div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label>
-                                                <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
-                                            </div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label>
-                                                <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold">
-                                            </div>
-                                            <div class="space-y-2 col-span-full">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label>
-                                                <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold">
-                                                    <option value="">Select Dept</option>
-                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                                </select>
-                                            </div>
+                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label><input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
+                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label><input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
+                                            <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label><select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
                                         </div>
                                     </div>
                                 `}
-
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Innovation Name</label>
-                                        <input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                    </div>
+                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Innovation Name</label><input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
                                     <div class="space-y-2">
                                         <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Documentation shared Link</label>
                                         <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="https://...">
                                         <p class="text-[9px] font-black text-blue-500/50 uppercase tracking-widest mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-2.5 h-2.5"></i> Link must start with https://</p>
                                     </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Impact & Achievements Summary</label>
-                                        <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Describe the outcome and efficiency gains...">${state.formData.achievements || ''}</textarea>
-                                    </div>
+                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Impact & Achievements Summary</label><textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Describe the outcome and efficiency gains...">${state.formData.achievements || ''}</textarea></div>
                                 </div>
-                                
                                 <div id="formStatus"></div>
                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud Hub</button>
                             </form>
@@ -459,10 +475,10 @@
                                 ${shortlisted.map(item => `
                                     <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
                                         <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
-                                        <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter">${item.innovationName}</h3>
-                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter break-words">${item.innovationName}</h3>
+                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black truncate">BY ${item.type === 'group' ? item.teamName : item.name}</p>
                                         <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 hover:border-blue-500/40 transition-all overflow-hidden group-hover:shadow-inner">
-                                            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 break-all italic">"${item.achievements}"</p>
+                                            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 italic break-words">"${item.achievements}"</p>
                                             <div class="text-[9px] font-black text-blue-500/50 mt-4 uppercase underline underline-offset-4 tracking-widest group-hover:text-blue-400 transition-colors">Details & Analysis</div>
                                         </button>
                                         <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
@@ -471,17 +487,16 @@
                                 ${shortlisted.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Admin verification in progress...</div>' : ''}
                             </div>
                         </section>
-
                         <section class="space-y-8">
                             <h2 class="text-2xl font-black text-slate-400 flex items-center gap-4 italic tracking-tighter uppercase leading-none"><i data-lucide="users" class="text-slate-600"></i> Submission Feed</h2>
                             <div class="grid md:grid-cols-3 gap-6">
                                 ${state.submissions.map(item => `
-                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-slate-700 transition-all">
-                                        <div class="flex justify-between items-center mb-6"><span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">${item.type === 'group' ? 'GROUP' : (item.dept || 'GEN')}</span></div>
-                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight">${item.innovationName}</h4>
+                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-slate-700 transition-all overflow-hidden">
+                                        <div class="flex justify-between items-center mb-6"><span class="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate">${item.type === 'group' ? 'GROUP' : (item.dept || 'GEN')}</span></div>
+                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight break-words">${item.innovationName}</h4>
                                         <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-800/50">
-                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[120px]">${item.type === 'group' ? item.teamName : item.name}</p>
-                                            <a href="${item.docLink}" target="_blank" class="text-blue-500 hover:text-blue-400 transition-colors"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate mr-2">${item.type === 'group' ? item.teamName : item.name}</p>
+                                            <a href="${item.docLink}" target="_blank" class="text-blue-500 hover:text-blue-400 transition-colors shrink-0"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -501,13 +516,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             ${MONTHLY_RECORDS.map(item => `
                                 <div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden">
-                                    <div class="flex justify-between items-start mb-8">
-                                        <span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>
-                                        ${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}
-                                    </div>
-                                    <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]">
-                                        <p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p>
-                                    </div>
+                                    <div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div>
+                                    <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]"><p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p></div>
                                 </div>
                             `).join('')}
                         </div>
@@ -525,17 +535,10 @@
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.submissions.map(sub => `
                                         <tr class="hover:bg-white/5 transition">
-                                            <td class="p-6">
-                                                <b class="text-white uppercase tracking-tight">${sub.type === 'group' ? sub.teamName : sub.name}</b><br>
-                                                <span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span>
-                                            </td>
+                                            <td class="p-6"><b class="text-white uppercase tracking-tight">${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span></td>
                                             <td class="p-6 font-black uppercase text-blue-100">${sub.innovationName}</td>
                                             <td class="p-6"><a href="${sub.docLink}" target="_blank" class="text-blue-500 font-black underline underline-offset-4 hover:text-blue-400">ACCESS DOCS</a></td>
-                                            <td class="p-6 text-center">
-                                                <button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black shadow-yellow-500/30 shadow-xl' : 'bg-slate-800 text-slate-500'} transition-all hover:scale-110">
-                                                    <i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i>
-                                                </button>
-                                            </td>
+                                            <td class="p-6 text-center"><button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black shadow-yellow-500/30 shadow-xl' : 'bg-slate-800 text-slate-500'} transition-all hover:scale-110"><i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i></button></td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -553,25 +556,22 @@
                     <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
                         <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
                         <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span>
-                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6">${item.innovationName}</h3>
-                        
+                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.innovationName}</h3>
                         <div class="space-y-4 mb-12">
                             ${item.type === 'group' ? `
-                                <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
+                                <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest truncate"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
                                 <div class="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-3">
-                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div>
-                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div>
+                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest truncate"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div>
+                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest truncate"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div>
                                 </div>
                             ` : `
-                                <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
+                                <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest truncate"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
                             `}
                         </div>
-                        
                         <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
                             <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Strategic Analysis</h4>
-                            <p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap">"${item.achievements}"</p>
+                            <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">"${item.achievements}"</p>
                         </div>
-
                         <div class="flex flex-col gap-4">
                             <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Download Core Documentation <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
                         </div>
@@ -587,6 +587,7 @@
                         <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div>
                         <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10">Admin Access Restricted</h3>
                         <input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••">
+                        <div id="adminError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6 text-center"></div>
                         <div class="flex gap-4">
                             <button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button>
                             <button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition">VERIFY</button>
@@ -596,10 +597,27 @@
             `;
         }
 
-        // --- Helpers ---
+        // --- Administrative Helpers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
-        function authorizeAdmin() { if (document.getElementById('adminCode').value === '()_+') { state.isAdmin = true; state.showAdminLogin = false; state.activeTab = 'admin'; } updateUI(); }
+        
+        async function authorizeAdmin() {
+            const code = document.getElementById('adminCode').value;
+            const hashed = await hashString(code);
+            const errEl = document.getElementById('adminError');
+            if (hashed === ADMIN_HASH) {
+                state.isAdmin = true;
+                state.showAdminLogin = false;
+                state.activeTab = 'admin';
+                updateUI();
+            } else {
+                if (errEl) {
+                    errEl.innerText = "Access Denied: Invalid Security Signature";
+                    errEl.classList.remove('hidden');
+                }
+            }
+        }
+        
         function logoutAdmin() { state.isAdmin = false; state.activeTab = 'dashboard'; updateUI(); }
         function closeModal() { state.selectedInnovation = null; updateUI(); }
         function showDetails(id) { state.selectedInnovation = state.submissions.find(s => s.id === id); updateUI(); }
@@ -640,12 +658,26 @@
         async function handleIdeaSubmit(e) {
             e.preventDefault();
             const data = state.ideaData;
+            
+            // Domain check for Idea Hub
+            if (!data.email || !data.email.toLowerCase().endsWith('@descasio.io')) {
+                const ideaStatus = document.getElementById('ideaStatus');
+                if (ideaStatus) {
+                    ideaStatus.innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-4 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">Restricted to @descasio.io emails.</p>`;
+                }
+                return;
+            }
+
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas').add({
                     ...data, timestamp: new Date().toISOString()
                 });
                 state.ideaData = {};
-                alert("Concept recorded!");
+                const status = document.createElement('div');
+                status.className = "fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl z-[200]";
+                status.innerText = "Concept recorded!";
+                document.body.appendChild(status);
+                setTimeout(() => status.remove(), 3000);
                 updateUI();
             } catch (err) { console.error(err); }
         }
