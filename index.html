@@ -51,6 +51,7 @@
             70% { box-shadow: 0 0 0 15px rgba(124, 58, 237, 0); }
             100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
         }
+        .highlight-text { color: #60a5fa; font-weight: 600; }
     </style>
 </head>
 <body class="selection:bg-blue-500/30">
@@ -87,9 +88,9 @@
         let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
 
         const MONTHLY_RECORDS = [
-            { month: "March", winner: null, solution: null, status: "upcoming" },
+            { month: "March", winner: null, solution: null, status: "active" },
             { month: "April", winner: null, solution: null, status: "upcoming" },
-            { month: "May", winner: null, solution: null, status: "active" },
+            { month: "May", winner: null, solution: null, status: "upcoming" },
             { month: "June", winner: null, solution: null, status: "upcoming" },
             { month: "July", winner: null, solution: null, status: "upcoming" },
             { month: "August", winner: null, solution: null, status: "upcoming" },
@@ -101,8 +102,8 @@
 
         let state = {
             user: null,
-            isAuthenticated: false, // Access Gateway status
-            gatewayView: 'email', // 'email' or 'otp'
+            isAuthenticated: false,
+            gatewayView: 'email', 
             authEmail: '',
             generatedOtp: null,
             otpExpiry: null,
@@ -142,7 +143,7 @@
             updateUI();
 
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            const expiry = Date.now() + (60 * 60 * 1000); // 1 hour validity
+            const expiry = Date.now() + (60 * 60 * 1000); 
 
             try {
                 await emailjs.send("service_v9ysmxt", "template_20x7ujf", {
@@ -188,30 +189,25 @@
         // --- Countdown Logic ---
         function updateCountdown() {
             const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const startOfWindow = new Date(year, month, 1, 0, 0, 0);
-            const endOfWindow = new Date(year, month, 20, 23, 59, 59);
-            let targetDate, label;
-
-            if (now < startOfWindow) { targetDate = startOfWindow; label = "STARTS IN"; }
-            else if (now <= endOfWindow) { targetDate = endOfWindow; label = "ENDS IN"; }
-            else { targetDate = new Date(year, month + 1, 1, 0, 0, 0); label = "NEXT HUB IN"; }
-
+            const targetDate = new Date(2026, 2, 24, 23, 59, 59); 
             const diff = targetDate - now;
-            state.timeLeft = {
-                days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-                mins: Math.floor((diff / 1000 / 60) % 60),
-                label: label
-            };
+            
+            if (diff <= 0) {
+                state.timeLeft = { days: 0, hours: 0, mins: 0, label: "CHALLENGE ENDED" };
+            } else {
+                state.timeLeft = {
+                    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                    mins: Math.floor((diff / 1000 / 60) % 60),
+                    label: "ENDS IN"
+                };
+            }
         }
 
         function updateUI() {
             const app = document.getElementById('app');
             if (!state.user) return;
 
-            // Access Gateway Guard
             if (!state.isAuthenticated) {
                 app.innerHTML = renderLoginGateway();
                 lucide.createIcons();
@@ -231,7 +227,7 @@
                         <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar">
                             <button onclick="navigate('dashboard')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Dashboard</button>
                             <button onclick="navigate('challenge')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
-                            <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Innovations</button>
+                            <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Submissions</button>
                             <button onclick="navigate('ideahub')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'ideahub' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Idea Hub</button>
                             <button onclick="navigate('winners')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'winners' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Winners</button>
                             ${state.isAdmin ? `<button onclick="navigate('admin')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'admin' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Admin</button>` : ''}
@@ -302,8 +298,8 @@
                             <div class="grid md:grid-cols-2 gap-8 items-center relative z-10">
                                 <div>
                                     <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Active Campaign</span>
-                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">HR Bot Challenge</h2>
-                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Create an AI-powered agent that can accurately navigate Descasio’s internal policies, culture, and operational procedures to provide instant, conversational answers to employee queries.</p>
+                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">Design Our Descasio Avatar</h2>
+                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Create an avatar to be the face of Descasio. This isn't just a cool picture, it’s a digital version of what Descasio stands for: bold, smart, and focused on Africa’s future.</p>
                                     <div class="flex flex-wrap gap-4 items-center">
                                         <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4"></i></button>
                                         <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white">
@@ -324,6 +320,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Restore Submissions Recorded Block -->
                         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-w-sm shadow-xl">
                             <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center"><i data-lucide="target" class="text-emerald-400"></i></div>
                             <div><p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Submissions Recorded</p><p class="text-3xl font-black text-white">${state.submissions.length}</p></div>
@@ -370,50 +368,26 @@
             if (state.activeTab === 'challenge') {
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
-                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Create an AI-powered agent that can accurately navigate Descasio’s internal policies, culture, and operational procedures to provide instant, conversational answers to employee queries.</p></div>
-                        <div class="grid grid-cols-3 gap-6">
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl"><p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Accuracy & Hallucination Control</p><p class="text-4xl font-black text-white italic tracking-tighter">50%</p></div>
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl"><p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Tone</p><p class="text-4xl font-black text-white italic tracking-tighter">40%</p></div>
-                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl"><p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">User Experience</p><p class="text-4xl font-black text-white italic tracking-tighter">10%</p></div>
+                        <div class="border-b border-slate-800 pb-8 text-center">
+                            <h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Design Our Descasio Avatar</h2>
+                            <p class="text-slate-400 text-lg opacity-70">Create an avatar to be the face of Descasio. This isn't just a cool picture, it’s a digital version of what Descasio stands for: bold, smart, and focused on Africa’s future.</p>
                         </div>
-                        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
-                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
-                            <ul class="space-y-10">
-                                <li class="flex items-start gap-5 group">
-                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
-                                    <div class="flex-1">
-                                        <h3 class="text-white font-bold text-xl mb-4">Accuracy & Hallucination Control</h3>
-                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Does the bot cite its sources? <span class="text-xs text-blue-300 italic opacity-80">(e.g., "According to the 2024 Employee Handbook...")</span></span></p>
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Does it provide correct information for tricky questions?</span></p>
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Points are awarded if the bot gracefully admits when information is missing rather than making up a policy.</span></p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="flex items-start gap-5 group">
-                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300"><i data-lucide="message-square" class="w-6 h-6"></i></div>
-                                    <div class="flex-1">
-                                        <h3 class="text-white font-bold text-xl mb-4">Tone</h3>
-                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Does the bot sound like a <span class="font-medium italic text-blue-400">"Descasio Team Member"</span>—professional, helpful, and culturally aligned?</span></p>
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Is the interface intuitive? <span class="text-xs text-blue-300 italic opacity-80">(e.g., does it offer follow-up questions like "Would you like to know more about...?")</span></span></p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="flex items-start gap-5 group">
-                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300"><i data-lucide="layout" class="w-6 h-6"></i></div>
-                                    <div class="flex-1">
-                                        <h3 class="text-white font-bold text-xl mb-4">User Experience</h3>
-                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>How professional, clean, and <span class="font-semibold text-blue-400">"Descasio-branded"</span> does the interface look?</span></p>
-                                            <p class="flex items-start gap-3"><span class="text-blue-400 font-bold mt-1 text-xs">▶</span><span>Are visual elements consistent with the company's design language?</span></p>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
+                        <div class="grid grid-cols-3 gap-6">
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Brand & Colors</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Value & Personality</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Prompt Detail</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
+                            </div>
                         </div>
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
-                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Innovation</h3>
+                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Submission</h3>
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
                                 <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
                                 <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
@@ -421,38 +395,65 @@
                             <form onsubmit="handleFormSubmit(event)" class="space-y-8">
                                 ${state.submissionType === 'individual' ? `
                                     <div class="grid md:grid-cols-2 gap-6 animate-in fade-in">
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label><input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email (@descasio.io)</label><input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
-                                        <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Department</label><select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Full Name</label><input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Email (@descasio.io)</label><input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                        <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Department</label><select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
                                     </div>
                                 ` : `
                                     <div class="space-y-8 animate-in slide-in-from-top-2">
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS"></div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS"></div>
+                                        
+                                        <!-- Restore Right Team Member Form (2 Members) -->
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 01</span></div>
-                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label><input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
-                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label><input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
-                                            <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label><select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 01</span></div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Name</label>
+                                                <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Email</label>
+                                                <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="col-span-full space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Department</label>
+                                                <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none">
+                                                    <option value="">Select Dept</option>
+                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
+
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 02</span></div>
-                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</label><input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
-                                            <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</label><input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold"></div>
-                                            <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Department</label><select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 02</span></div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Name</label>
+                                                <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Email</label>
+                                                <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="col-span-full space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Department</label>
+                                                <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none">
+                                                    <option value="">Select Dept</option>
+                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 `}
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
-                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Innovation Name</label><input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Avatar Name</label><input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
                                     <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Documentation shared Link</label>
-                                        <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="https://...">
-                                        <p class="text-[9px] font-black text-blue-500/50 uppercase tracking-widest mt-1 flex items-center gap-1"><i data-lucide="alert-circle" class="w-2.5 h-2.5"></i> Link must start with https://</p>
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Upload Image (PNG, JPG, JPEG)</label>
+                                        <input required type="file" accept="image/png, image/jpeg, image/jpg" onchange="handleFileUpload(this)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-xs italic">
+                                        <p class="text-[9px] font-black text-blue-500/50 uppercase mt-1">Maximum file size: 2MB</p>
                                     </div>
-                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Impact & Achievements Summary</label><textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Describe the outcome and efficiency gains...">${state.formData.achievements || ''}</textarea></div>
+                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Prompt used</label><textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Paste the prompt used to generate the avatar...">${state.formData.achievements || ''}</textarea></div>
                                 </div>
                                 <div id="formStatus"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud Hub</button>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Submit</button>
                             </form>
                         </div>
                     </div>
@@ -463,6 +464,7 @@
                 const shortlisted = state.submissions.filter(s => s.shortlisted);
                 return `
                     <div class="space-y-12 animate-in fade-in">
+                        <!-- Restore Shortlisted for Voting Section -->
                         <section class="space-y-8">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
                                 <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8">Shortlisted for Voting</h2></div>
@@ -472,33 +474,36 @@
                             </div>
                             <div class="grid md:grid-cols-3 gap-8">
                                 ${shortlisted.map(item => `
-                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
-                                        <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
-                                        <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter break-words">${item.innovationName}</h3>
+                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-6 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
+                                        <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800">
+                                            ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="image" class="w-12 h-12"></i></div>`}
+                                        </div>
+                                        <div class="flex justify-between items-center mb-4"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
+                                        <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter break-words">${item.innovationName}</h3>
                                         <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black truncate">BY ${item.type === 'group' ? item.teamName : item.name}</p>
-                                        <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 hover:border-blue-500/40 transition-all overflow-hidden group-hover:shadow-inner">
-                                            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 italic break-words">"${item.achievements}"</p>
-                                            <div class="text-[9px] font-black text-blue-500/50 mt-4 uppercase underline underline-offset-4 tracking-widest group-hover:text-blue-400 transition-colors">Details & Analysis</div>
-                                        </button>
-                                        <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
+                                        <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
+                                        <div class="mt-6 pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
                                     </div>
                                 `).join('')}
                                 ${shortlisted.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Admin verification in progress...</div>' : ''}
                             </div>
                         </section>
+
                         <section class="space-y-8">
                             <h2 class="text-2xl font-black text-slate-400 flex items-center gap-4 italic tracking-tighter uppercase leading-none"><i data-lucide="users" class="text-slate-600"></i> Submission Feed</h2>
                             <div class="grid md:grid-cols-3 gap-6">
                                 ${state.submissions.map(item => `
-                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-slate-700 transition-all overflow-hidden">
-                                        <div class="flex justify-between items-center mb-6"><span class="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate">${item.type === 'group' ? 'GROUP' : (item.dept || 'GEN')}</span></div>
-                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight break-words">${item.innovationName}</h4>
-                                        <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-800/50">
-                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate mr-2">${item.type === 'group' ? item.teamName : item.name}</p>
-                                            <a href="${item.docLink}" target="_blank" class="text-blue-500 hover:text-blue-400 transition-colors shrink-0"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-blue-500/30 transition-all overflow-hidden group shadow-xl">
+                                        <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800">
+                                            ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="image" class="w-12 h-12"></i></div>`}
                                         </div>
+                                        <div class="flex justify-between items-center mb-4"><span class="text-[9px] font-black uppercase text-blue-500 tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span></div>
+                                        <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter truncate break-words">${item.innovationName}</h3>
+                                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
                                     </div>
                                 `).join('')}
+                                ${state.submissions.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Awaiting first submission...</div>' : ''}
                             </div>
                         </section>
                     </div>
@@ -530,13 +535,13 @@
                         <div class="flex justify-between items-end border-b border-slate-800 pb-10"><div><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Admin Control</h2></div><button onclick="logoutAdmin()" class="bg-red-600/10 text-red-500 text-[10px] font-black uppercase px-6 py-3 rounded-xl border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">Sign Out</button></div>
                         <div class="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 shadow-2xl">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Origin / Team</th><th class="p-6">Innovation Solution</th><th class="p-6">Documentation</th><th class="p-6 text-center">Shortlist</th></tr></thead>
+                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Origin / Team</th><th class="p-6">Avatar Name</th><th class="p-6">Preview</th><th class="p-6 text-center">Shortlist</th></tr></thead>
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.submissions.map(sub => `
                                         <tr class="hover:bg-white/5 transition">
                                             <td class="p-6"><b class="text-white uppercase tracking-tight">${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span></td>
                                             <td class="p-6 font-black uppercase text-blue-100">${sub.innovationName}</td>
-                                            <td class="p-6"><a href="${sub.docLink}" target="_blank" class="text-blue-500 font-black underline underline-offset-4 hover:text-blue-400">ACCESS DOCS</a></td>
+                                            <td class="p-6">${sub.docLink ? `<img src="${sub.docLink}" class="w-10 h-10 rounded-lg object-cover">` : '-'}</td>
                                             <td class="p-6 text-center"><button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black shadow-yellow-500/30 shadow-xl' : 'bg-slate-800 text-slate-500'} transition-all hover:scale-110"><i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i></button></td>
                                         </tr>
                                     `).join('')}
@@ -554,8 +559,11 @@
                 <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
                     <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
                         <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
-                        <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span>
+                        <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">ENTRY DETAIL</span>
                         <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.innovationName}</h3>
+                        
+                        ${item.docLink ? `<img src="${item.docLink}" class="w-full aspect-square object-cover rounded-[2rem] border-2 border-blue-500/20 mb-10 shadow-2xl">` : ''}
+
                         <div class="space-y-4 mb-12">
                             ${item.type === 'group' ? `
                                 <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest truncate"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
@@ -568,11 +576,8 @@
                             `}
                         </div>
                         <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
-                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Strategic Analysis</h4>
+                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Prompt Used</h4>
                             <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">"${item.achievements}"</p>
-                        </div>
-                        <div class="flex flex-col gap-4">
-                            <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Download Core Documentation <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
                         </div>
                     </div>
                 </div>
@@ -596,7 +601,7 @@
             `;
         }
 
-        // --- Administrative Helpers ---
+        // --- Helpers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
         
@@ -623,6 +628,35 @@
         function setSubmissionType(type) { state.submissionType = type; updateUI(); }
         function handleFormInput(stateKey, field, value) { state[stateKey][field] = value; }
 
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File is too large! Max 2MB allowed.");
+                input.value = "";
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max_dim = 800; 
+                    if (width > height) { if (width > max_dim) { height *= max_dim / width; width = max_dim; } }
+                    else { if (height > max_dim) { width *= max_dim / height; height = max_dim; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    state.formData.docLink = canvas.toDataURL('image/jpeg', 0.7);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         async function toggleShortlist(id, current) {
             try {
                 const docRef = db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').doc(id);
@@ -633,11 +667,18 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             const data = state.formData;
-            const emailsToCheck = state.submissionType === 'individual' ? [data.email] : [data.member1Email, data.member2Email];
+            
+            let emailsToCheck = [];
+            if (state.submissionType === 'individual') {
+                emailsToCheck = [data.email];
+            } else {
+                emailsToCheck = [data.member1Email, data.member2Email];
+            }
+            
             const invalidEmails = emailsToCheck.some(email => !email || !email.toLowerCase().endsWith('@descasio.io'));
 
             if (invalidEmails) {
-                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">Restricted to @descasio.io emails.</p>`;
+                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">All team members must use @descasio.io emails.</p>`;
                 return;
             }
 
@@ -657,8 +698,6 @@
         async function handleIdeaSubmit(e) {
             e.preventDefault();
             const data = state.ideaData;
-            
-            // Domain check for Idea Hub
             if (!data.email || !data.email.toLowerCase().endsWith('@descasio.io')) {
                 const ideaStatus = document.getElementById('ideaStatus');
                 if (ideaStatus) {
