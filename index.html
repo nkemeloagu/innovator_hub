@@ -272,7 +272,7 @@
                         <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-12">Innovation Hub Gateway</p>
 
                         ${state.gatewayView === 'email' ? `
-                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive an access code.</p>
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 24-hour access code.</p>
                             <input id="gatewayEmail" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-bold mb-6" placeholder="name@descasio.io" value="${state.authEmail}">
                             <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
                             <button onclick="requestOtp()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-50 transition shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
@@ -322,7 +322,7 @@
                         </div>
 
                         <!-- Restore Submissions Recorded Block -->
-                        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-w-sm shadow-xl">
+                        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-sm shadow-xl">
                             <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center"><i data-lucide="target" class="text-emerald-400"></i></div>
                             <div><p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Submissions Recorded</p><p class="text-3xl font-black text-white">${state.submissions.length}</p></div>
                         </div>
@@ -386,6 +386,77 @@
                                 <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
                             </div>
                         </div>
+
+                        <!-- Key Criteria -->
+                        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
+                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
+                            <ul class="space-y-10">
+                                <!-- 1. Brand and Colours -->
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4 uppercase">1. Brand and Colours</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Our Colors:</span> Make sure the avatar uses our brand colors.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">The Logo:</span> Try to work the Descasio logo into the design. It could be on the avatar’s chest or even a floating holographic "heart."</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- 2. Value and Personality -->
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                        <i data-lucide="message-square" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4 uppercase">2. Value and Personality</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Innovation:</span> E.g Add things like glowing circuits or floating data screens to show we’re always looking at what’s next.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Leadership:</span> Give the avatar a "visionary" feel. It should look like it’s looking toward the horizon, leading the way.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Customer-Centric:</span> We’re here for real people. Give the avatar a friendly face or a welcoming pose—maybe it’s reaching out to help or shake a hand.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Expert but Friendly:</span> The avatar should look sharp and professional but it should have a warm, helpful energy.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- 3. Prompt Detail -->
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                        <i data-lucide="layout" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4 uppercase">3. Prompt Detail</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span>Put enough thought into the instruction. Give the AI clear instructions and specify keywords.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
                             <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Submission</h3>
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
@@ -474,12 +545,12 @@
                             </div>
                             <div class="grid md:grid-cols-3 gap-8">
                                 ${shortlisted.map(item => `
-                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-6 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
+                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
                                         <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800">
                                             ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="image" class="w-12 h-12"></i></div>`}
                                         </div>
                                         <div class="flex justify-between items-center mb-4"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
-                                        <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter break-words">${item.innovationName}</h3>
+                                        <h3 class="text-2xl font-black text-white mb-3 uppercase italic tracking-tighter break-words">${item.innovationName}</h3>
                                         <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black truncate">BY ${item.type === 'group' ? item.teamName : item.name}</p>
                                         <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
                                         <div class="mt-6 pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
@@ -499,7 +570,7 @@
                                         </div>
                                         <div class="flex justify-between items-center mb-4"><span class="text-[9px] font-black uppercase text-blue-500 tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span></div>
                                         <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter truncate break-words">${item.innovationName}</h3>
-                                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black mb-4">BY ${item.type === 'group' ? item.teamName : item.name}</p>
                                         <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
                                     </div>
                                 `).join('')}
