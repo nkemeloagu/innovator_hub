@@ -110,9 +110,23 @@
         ];
 
         const ROUND_1_STANDINGS = [
-            { name: "Michael Oredunni", email: "michael.oredunni@descasio.io", dept: "Marketing", r1Score: 3, cumulativeScore: 3, round: 1 },
-            { name: "Anthony Olise", email: "anthony.olise@descasio.io", dept: "Finance", r1Score: 2, cumulativeScore: 2, round: 1 },
-            { name: "Kehinde Onifade", email: "kehinde.onifade@descasio.io", dept: "Software Engineering", r1Score: 1, cumulativeScore: 1, round: 1 }
+            { name: "Michael Oredunni", email: "michael.oredunni@descasio.io", r1Score: 3, cumulativeScore: 3, round: 1 },
+            { name: "Anthony Olise", email: "anthony.olise@descasio.io", r1Score: 2, cumulativeScore: 2, round: 1 },
+            { name: "Kehinde Onifade", email: "kehinde.onifade@descasio.io", r1Score: 1, cumulativeScore: 1, round: 1 },
+            { name: "Chioma Igweonu", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Nehita", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Solomon Ojeigbo", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Ifeloluwa Ajibola", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Olaotan Leigh", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Mohammed Gberejaye", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "ANIYEYE ONOME MIRACLE", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Tomi Adejorooluwa", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Hannah Oyetunji", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Eshomomoh Irosowe", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "KEHINDE SHOGANMU", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "OREDUNNI MICHAEL", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "MaryBlessing Umeh", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
+            { name: "Jafar Alabi Zubair", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 }
         ];
         
         let persistedAuth = null;
@@ -320,7 +334,7 @@
                         <h2 class="text-white text-4xl font-black italic tracking-tighter uppercase mb-2">DESCASIO</h2>
                         <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-12">Innovation Hub Gateway</p>
                         ${state.gatewayView === 'email' ? `
-                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 1-hour access code.</p>
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive an access code.</p>
                             <input id="gatewayEmail" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-bold mb-6" placeholder="name@descasio.io" value="${state.authEmail}">
                             <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
                             <button onclick="requestOtp()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-50 transition shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
@@ -454,7 +468,6 @@
                             <p class="text-slate-400 text-lg opacity-70">Efficiency at Descasio is built on our ability to transform complex problems into seamless solutions. Use the PlugiQ AI Designer to build an end-to-end workflow that address three specific organizational bottlenecks at Descasio.</p>
                         </div>
                         
-                        <!-- Resources Section (New) -->
                         <div class="bg-blue-600/10 border-2 border-blue-500/20 p-8 rounded-[3rem] shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3 italic"><i data-lucide="library" class="text-blue-400"></i> Challenge Resources</h3>
                             <div class="grid md:grid-cols-2 gap-4">
@@ -710,7 +723,6 @@
                                     <tr>
                                         <th class="p-8 text-center w-24">Rank</th>
                                         <th class="p-8">Participant Detail</th>
-                                        <th class="p-8">Department</th>
                                         <th class="p-8 text-center">Current Round</th>
                                         <th class="p-8 text-right">Cumulative Score</th>
                                     </tr>
@@ -719,20 +731,15 @@
                                     ${state.leaderboard.map((entry, index) => `
                                         <tr class="hover:bg-white/5 transition group">
                                             <td class="p-8 text-center">
-                                                <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center font-black text-xs ${index < 3 ? 'rank-badge-' + (index + 1) : 'bg-slate-800 text-slate-400'}">
-                                                    ${index + 1}
+                                                <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center font-black text-xs ${entry.cumulativeScore === 0.5 ? 'bg-slate-800 text-slate-400' : (index < 3 ? 'rank-badge-' + (index + 1) : 'bg-slate-800 text-slate-400')}">
+                                                    ${entry.cumulativeScore === 0.5 ? 4 : (index + 1)}
                                                 </div>
                                             </td>
                                             <td class="p-8">
                                                 <div class="flex flex-col">
                                                     <span class="text-white font-black uppercase text-sm tracking-tight group-hover:text-blue-400 transition-colors">${entry.name}</span>
-                                                    <span class="text-slate-500 text-[10px] font-medium tracking-tight mt-1 opacity-60">${entry.email}</span>
+                                                    <span class="text-slate-500 text-[10px] font-medium tracking-tight mt-1 opacity-60">${entry.email || ''}</span>
                                                 </div>
-                                            </td>
-                                            <td class="p-8">
-                                                <span class="bg-slate-950 text-slate-400 border border-slate-800 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                                                    ${entry.dept}
-                                                </span>
                                             </td>
                                             <td class="p-8 text-center">
                                                 <span class="text-white font-black text-lg italic tracking-tighter">Round 1</span>
@@ -957,7 +964,7 @@
                     const firestoreData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     const combined = [...ROUND_1_STANDINGS];
                     firestoreData.forEach(item => {
-                        const existingIdx = combined.findIndex(e => e.email === item.email);
+                        const existingIdx = combined.findIndex(e => e.name === item.name);
                         if (existingIdx > -1) combined[existingIdx] = item;
                         else combined.push(item);
                     });
