@@ -92,14 +92,13 @@
         
         // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
-        const PREVIOUS_WINNER = { name: "Michael Oredunni", dept: "Marketing", title: "Efficiency Lead", month: "April", avatar: "MO" };
         const HUB_AVATAR = "https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Mesca.png";
         
         let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
         const MONTHLY_RECORDS = [
             { month: "March", winner: "Michael Oredunni", solution: "Round 1 Top Scorer", status: "completed", image: "https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Media.png" },
-            { month: "April", winner: null, solution: null, status: "active" },
-            { month: "May", winner: null, solution: null, status: "upcoming" },
+            { month: "April", winner: "Ifeloluwa Ajibola", solution: "Round 2 Efficiency Lead", status: "completed" },
+            { month: "May", winner: null, solution: null, status: "active" },
             { month: "June", winner: null, solution: null, status: "upcoming" },
             { month: "July", winner: null, solution: null, status: "upcoming" },
             { month: "August", winner: null, solution: null, status: "upcoming" },
@@ -109,24 +108,24 @@
             { month: "December", winner: null, solution: null, status: "upcoming" },
         ];
 
-        const ROUND_1_STANDINGS = [
-            { name: "Michael Oredunni", email: "michael.oredunni@descasio.io", r1Score: 3, cumulativeScore: 3, round: 1 },
-            { name: "Anthony Olise", email: "anthony.olise@descasio.io", r1Score: 2, cumulativeScore: 2, round: 1 },
-            { name: "Kehinde Onifade", email: "kehinde.onifade@descasio.io", r1Score: 1, cumulativeScore: 1, round: 1 },
-            { name: "Chioma Igweonu", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Nehita", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Solomon Ojeigbo", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Ifeloluwa Ajibola", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Olaotan Leigh", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Mohammed Gberejaye", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "ANIYEYE ONOME MIRACLE", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Tomi Adejorooluwa", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Hannah Oyetunji", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Eshomomoh Irosowe", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "KEHINDE SHOGANMU", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "OREDUNNI MICHAEL", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "MaryBlessing Umeh", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 },
-            { name: "Jafar Alabi Zubair", email: "", r1Score: 0.5, cumulativeScore: 0.5, round: 1 }
+        // Final Leaderboard Data
+        const FINAL_STANDINGS = [
+            { name: "Michael Oredunni", email: "michael.oredunni@descasio.io", r1: 3, r2: 0.5, cumulativeScore: 3.5, rank: 1 },
+            { name: "Ifeloluwa Ajibola", email: "ifeloluwa.ajibola@descasio.io", r1: 0.5, r2: 3, cumulativeScore: 3.5, rank: 1 },
+            { name: "Kehinde Ridwan Onifade", email: "kehinde.onifade@descasio.io", r1: 1, r2: 2, cumulativeScore: 3, rank: 2 },
+            { name: "Solomon Ojeigbo", email: "solomon.ojeigbo@descasio.io", r1: 0.5, r2: 2, cumulativeScore: 2.5, rank: 3 },
+            { name: "Anthony Olise", email: "anthony.olise@descasio.io", r1: 2, r2: 0, cumulativeScore: 2, rank: 4 },
+            { name: "Mohammed Gberejaye", email: "mohammed.gberejaye@descasio.io", r1: 0.5, r2: 1, cumulativeScore: 1.5, rank: 5 },
+            { name: "Chioma Igweonu", email: "chioma.igweonu@descasio.io", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "Nehita", email: "", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "Olaotan Leigh", email: "olaotan.leigh@descasio.io", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "ANIYEYE ONOME MIRACLE", email: "", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "Tomi Adejorooluwa", email: "tomi.adejorooluwa@descasio.io", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "Hannah Oyetunji", email: "hannah.oyetunji@descasio.io", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "Eshomomoh Irosowe (Strategy)", email: "", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "KEHINDE SHOGANMU", email: "", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "MaryBlessing Umeh", email: "maryblessing.umeh@descasio.io", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 },
+            { name: "Jafar Alabi Zubair (Product)", email: "", r1: 0.5, r2: 0, cumulativeScore: 0.5, rank: 4 }
         ];
         
         let persistedAuth = null;
@@ -153,7 +152,7 @@
             submissionType: 'individual',
             submissions: [],
             ideas: [],
-            leaderboard: [...ROUND_1_STANDINGS],
+            leaderboard: [...FINAL_STANDINGS],
             selectedInnovation: null,
             selectedIdea: null,
             isAdmin: false,
@@ -264,7 +263,6 @@
             if (timerEl) timerEl.innerText = `${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m`;
         }
         
-        // --- RENDER LOGIC ---
         function updateUI() {
             if (document.activeElement && 
                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
@@ -290,7 +288,7 @@
                         </div>
                         <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar">
                             <button onclick="navigate('dashboard')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Dashboard</button>
-                            <button onclick="navigate('challenge')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
+                            <button onclick="navigate('challenge')" class="flex iems-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
                             <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Submissions</button>
                             <button onclick="navigate('ideahub')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'ideahub' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Idea Hub</button>
                             <button onclick="navigate('winners')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'winners' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Winners</button>
@@ -363,7 +361,7 @@
                                 <div class="lg:col-span-7 space-y-8">
                                     <div>
                                         <span class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
-                                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Round 2 Mission
+                                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Round 2 Mission: COMPLETE
                                         </span>
                                         <h2 class="text-5xl md:text-7xl font-black mt-8 mb-6 text-white leading-[0.9] italic tracking-tighter uppercase">Efficiency at Descasio</h2>
                                         <p class="text-blue-100/80 text-xl leading-relaxed max-w-xl font-medium italic">
@@ -396,25 +394,27 @@
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-8">
-                            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3rem] p-8 flex items-center gap-8 shadow-xl border-l-8 border-l-blue-600 transition-transform hover:-translate-y-1">
-                                <div class="w-24 h-24 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl overflow-hidden border-4 border-slate-800 shrink-0">
-                                    <img src="https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Media.png" class="w-full h-full object-cover">
+                            <!-- Round 2 Winner Box -->
+                            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3.5rem] p-10 flex items-center gap-10 shadow-xl border-l-8 border-l-emerald-500 transition-transform hover:-translate-y-1">
+                                <div class="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-inner">
+                                    <i data-lucide="award" class="text-emerald-500 w-12 h-12"></i>
                                 </div>
                                 <div class="space-y-2">
-                                    <h3 class="text-blue-400 font-black text-[10px] uppercase tracking-[0.3em]">Round 1 Champion</h3>
-                                    <p class="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">Michael Oredunni</p>
-                                    <p class="text-slate-500 text-sm font-bold">Marketing Team • 3 Cumulative Points</p>
+                                    <h3 class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 2 Winner</h3>
+                                    <p class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Ifeloluwa Ajibola</p>
+                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Lead Efficiency Solution</p>
                                 </div>
                             </div>
 
-                            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3rem] p-8 flex items-center gap-8 shadow-xl border-l-8 border-l-emerald-500 transition-transform hover:-translate-y-1">
-                                <div class="w-20 h-20 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20">
-                                    <i data-lucide="activity" class="text-emerald-500 w-10 h-10"></i>
+                            <!-- Round 2 Activity Box -->
+                            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3.5rem] p-10 flex items-center gap-10 shadow-xl border-l-8 border-l-blue-600 transition-transform hover:-translate-y-1">
+                                <div class="w-24 h-24 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center shrink-0 border border-blue-500/20 shadow-inner">
+                                    <i data-lucide="activity" class="text-blue-500 w-12 h-12"></i>
                                 </div>
-                                <div>
-                                    <h3 class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em]">Round 2 Activity</h3>
-                                    <p class="text-5xl font-black text-white italic tracking-tighter">${round2Count}</p>
-                                    <p class="text-slate-500 text-sm font-bold mt-1 uppercase tracking-widest">Efficiency Solutions Recorded</p>
+                                <div class="space-y-1">
+                                    <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 2 Activity</h3>
+                                    <p class="text-6xl font-black text-white italic tracking-tighter leading-none">7</p>
+                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Efficiency Solutions Recorded</p>
                                 </div>
                             </div>
                         </div>
@@ -723,16 +723,17 @@
                                     <tr>
                                         <th class="p-8 text-center w-24">Rank</th>
                                         <th class="p-8">Participant Detail</th>
-                                        <th class="p-8 text-center">Current Round</th>
-                                        <th class="p-8 text-right">Cumulative Score</th>
+                                        <th class="p-8 text-center">Round 1</th>
+                                        <th class="p-8 text-center">Round 2</th>
+                                        <th class="p-8 text-right">Cumulative</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.leaderboard.map((entry, index) => `
                                         <tr class="hover:bg-white/5 transition group">
                                             <td class="p-8 text-center">
-                                                <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center font-black text-xs ${entry.cumulativeScore === 0.5 ? 'bg-slate-800 text-slate-400' : (index < 3 ? 'rank-badge-' + (index + 1) : 'bg-slate-800 text-slate-400')}">
-                                                    ${entry.cumulativeScore === 0.5 ? 4 : (index + 1)}
+                                                <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center font-black text-xs ${entry.rank < 4 ? 'rank-badge-' + entry.rank : 'bg-slate-800 text-slate-400'}">
+                                                    ${entry.rank}
                                                 </div>
                                             </td>
                                             <td class="p-8">
@@ -742,11 +743,14 @@
                                                 </div>
                                             </td>
                                             <td class="p-8 text-center">
-                                                <span class="text-white font-black text-lg italic tracking-tighter">Round 1</span>
+                                                <span class="text-slate-400 font-bold">${entry.r1 !== undefined ? entry.r1 : '-'}</span>
+                                            </td>
+                                            <td class="p-8 text-center">
+                                                <span class="text-blue-400 font-bold">${entry.r2 !== undefined ? entry.r2 : '-'}</span>
                                             </td>
                                             <td class="p-8 text-right">
                                                 <div class="flex flex-col items-end">
-                                                    <span class="text-3xl font-black text-white italic tracking-tighter leading-none">${entry.cumulativeScore || 0}</span>
+                                                    <span class="text-3xl font-black text-white italic tracking-tighter leading-none">${entry.cumulativeScore.toFixed(1)}</span>
                                                     <span class="text-blue-500 text-[8px] font-black uppercase tracking-[0.2em] mt-2">TOTAL POINTS</span>
                                                 </div>
                                             </td>
@@ -820,7 +824,7 @@
                                 </div>
                             ` : `
                                 <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest truncate"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
-                                <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest px-1"><i data-lucide="briefcase" class="w-3 h-3"></i> ${item.dept}</div>
+                                <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest px-1"><i data-lucide="briefcase" class="w-3 h-3"></i> ${item.dept || 'CORE'}</div>
                             `}
                         </div>
                         ${item.round === 2 ? `
@@ -849,7 +853,7 @@
                 <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
                     <div class="bg-slate-900 max-w-3xl w-full p-12 rounded-[4rem] border-2 border-yellow-500/30 shadow-[0_0_100px_rgba(234,179,8,0.1)] relative max-h-[90vh] overflow-y-auto custom-card">
                         <button onclick="closeIdeaModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
-                        <div class="flex items-center gap-3 text-yellow-500 mb-8"><i data-lucide="lightbulb" class="w-6 h-6"></i> <span class="text-xs font-black uppercase tracking-[0.3em] italic">AI Concept Detail</span></div>
+                        <div class="flex items-center gap-3 text-yellow-500 mb-8"><i data-lucide="lightbulb" class="w-6 h-6"></i> <span class="text-xs font-black uppercase tracking-[0.3em] italic">Concept Detail</span></div>
                         <h3 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none mb-10 break-words">${idea.title}</h3>
                         <div class="bg-black/60 rounded-[3rem] p-12 border border-white/5 shadow-inner">
                             <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.4em] mb-10 flex items-center gap-3"><i data-lucide="align-left" class="w-4 h-4"></i> Detailed Description</h4>
@@ -962,7 +966,7 @@
                 db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('leaderboard')
                   .onSnapshot((snapshot) => {
                     const firestoreData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    const combined = [...ROUND_1_STANDINGS];
+                    const combined = [...FINAL_STANDINGS];
                     firestoreData.forEach(item => {
                         const existingIdx = combined.findIndex(e => e.name === item.name);
                         if (existingIdx > -1) combined[existingIdx] = item;
